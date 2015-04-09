@@ -20,7 +20,7 @@ use eZ\Publish\API\Repository\Values\Content\VersionInfo as APIVersionInfo;
 use eZ\Publish\Core\MVC\Symfony\View\ViewManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Security\Core\SecurityContextInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use DateTime;
 use Exception;
@@ -33,14 +33,14 @@ class ViewController extends Controller
     protected $viewManager;
 
     /**
-     * @var \Symfony\Component\Security\Core\SecurityContextInterface
+     * @var \Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface
      */
-    private $securityContext;
+    private $authorizationChecker;
 
-    public function __construct( ViewManagerInterface $viewManager, SecurityContextInterface $securityContext )
+    public function __construct( ViewManagerInterface $viewManager, AuthorizationCheckerInterface $authorizationChecker )
     {
         $this->viewManager = $viewManager;
-        $this->securityContext = $securityContext;
+        $this->authorizationChecker = $authorizationChecker;
     }
 
     /**
@@ -186,14 +186,14 @@ class ViewController extends Controller
 
             // Check both 'content/read' and 'content/view_embed'.
             if (
-                !$this->securityContext->isGranted(
+                !$this->authorizationChecker->isGranted(
                     new AuthorizationAttribute(
                         'content',
                         'read',
                         array( 'valueObject' => $location->contentInfo, 'targets' => $location )
                     )
                 )
-                && !$this->securityContext->isGranted(
+                && !$this->authorizationChecker->isGranted(
                     new AuthorizationAttribute(
                         'content',
                         'view_embed',
@@ -321,10 +321,10 @@ class ViewController extends Controller
 
             // Check both 'content/read' and 'content/view_embed'.
             if (
-                !$this->securityContext->isGranted(
+                !$this->authorizationChecker->isGranted(
                     new AuthorizationAttribute( 'content', 'read', array( 'valueObject' => $content ) )
                 )
-                && !$this->securityContext->isGranted(
+                && !$this->authorizationChecker->isGranted(
                     new AuthorizationAttribute( 'content', 'view_embed', array( 'valueObject' => $content ) )
                 )
             )
@@ -335,7 +335,7 @@ class ViewController extends Controller
             // Check that Content is published, since sudo allows loading unpublished content.
             if (
                 $content->getVersionInfo()->status !== APIVersionInfo::STATUS_PUBLISHED
-                && !$this->securityContext->isGranted(
+                && !$this->authorizationChecker->isGranted(
                     new AuthorizationAttribute( 'content', 'versionread', array( 'valueObject' => $content ) )
                 )
             )

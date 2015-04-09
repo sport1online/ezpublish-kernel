@@ -41,7 +41,7 @@ class PreviewControllerTest extends PHPUnit_Framework_TestCase
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject
      */
-    protected $securityContext;
+    protected $authorizationChecker;
 
     protected function setUp()
     {
@@ -53,7 +53,11 @@ class PreviewControllerTest extends PHPUnit_Framework_TestCase
             ->getMockBuilder( 'eZ\Publish\Core\Helper\ContentPreviewHelper' )
             ->disableOriginalConstructor()
             ->getMock();
-        $this->securityContext = $this->getMock( 'Symfony\Component\Security\Core\SecurityContextInterface' );
+        $this->authorizationChecker = $this->getMock( 'Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface' );
+        $this->locationProvider = $this
+            ->getMockBuilder( 'eZ\Publish\Core\Helper\PreviewLocationProvider' )
+            ->disableOriginalConstructor()
+            ->getMock();
     }
 
     /**
@@ -65,7 +69,7 @@ class PreviewControllerTest extends PHPUnit_Framework_TestCase
             $this->contentService,
             $this->httpKernel,
             $this->previewHelper,
-            $this->securityContext
+            $this->authorizationChecker
         );
 
         return $controller;
@@ -112,7 +116,7 @@ class PreviewControllerTest extends PHPUnit_Framework_TestCase
             ->method( 'loadContent' )
             ->with( $contentId, array( $lang ), $versionNo )
             ->will( $this->returnValue( $content ) );
-        $this->securityContext
+        $this->authorizationChecker
             ->expects( $this->once() )
             ->method( 'isGranted' )
             ->with( $this->equalTo( new AuthorizationAttribute( 'content', 'versionread', array( 'valueObject' => $content ) ) ) )
@@ -143,7 +147,7 @@ class PreviewControllerTest extends PHPUnit_Framework_TestCase
             ->method( 'loadContent' )
             ->with( $contentId, array( $lang ), $versionNo )
             ->will( $this->returnValue( $content ) );
-        $this->securityContext
+        $this->authorizationChecker
             ->expects( $this->once() )
             ->method( 'isGranted' )
             ->with( $this->equalTo( new AuthorizationAttribute( 'content', 'versionread', array( 'valueObject' => $content ) ) ) )
@@ -215,7 +219,7 @@ class PreviewControllerTest extends PHPUnit_Framework_TestCase
             ->method( 'loadContent' )
             ->with( $contentId, array( $lang ), $versionNo )
             ->will( $this->returnValue( $content ) );
-        $this->securityContext
+        $this->authorizationChecker
             ->expects( $this->once() )
             ->method( 'isGranted' )
             ->with( $this->equalTo( new AuthorizationAttribute( 'content', 'versionread', array( 'valueObject' => $content ) ) ) )
