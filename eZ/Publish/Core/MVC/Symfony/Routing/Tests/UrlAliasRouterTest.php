@@ -9,20 +9,21 @@
 
 namespace eZ\Publish\Core\MVC\Symfony\Routing\Tests;
 
+use eZ\Publish\API\Repository\ContentService;
 use eZ\Publish\API\Repository\LocationService;
 use eZ\Publish\API\Repository\URLAliasService;
-use eZ\Publish\API\Repository\ContentService;
-use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\HttpFoundation\Request;
+use eZ\Publish\API\Repository\Values\Content\ContentInfo;
 use eZ\Publish\API\Repository\Values\Content\URLAlias;
 use eZ\Publish\Core\Base\Exceptions\NotFoundException;
 use eZ\Publish\Core\MVC\Symfony\Routing\Generator\UrlAliasGenerator;
 use eZ\Publish\Core\MVC\Symfony\Routing\UrlAliasRouter;
 use eZ\Publish\Core\MVC\Symfony\SiteAccess;
-use eZ\Publish\Core\Repository\Values\Content\Location;
-use eZ\Publish\API\Repository\Values\Content\ContentInfo;
 use eZ\Publish\Core\MVC\Symfony\View\Manager as ViewManager;
+use eZ\Publish\Core\Repository\Values\Content\Location;
 use PHPUnit_Framework_TestCase;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RequestContext;
 
 class UrlAliasRouterTest extends PHPUnit_Framework_TestCase
 {
@@ -634,15 +635,15 @@ class UrlAliasRouterTest extends PHPUnit_Framework_TestCase
     public function testGenerateWithLocation()
     {
         $location = new Location();
-        $parameters = array( 'some' => 'thing' );
-        $absolute = false;
+        $parameters = array('some' => 'thing');
+        $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH;
         $generatedLink = '/foo/bar';
         $this->urlALiasGenerator
-            ->expects( $this->once() )
-            ->method( 'generate' )
-            ->with( $location, $parameters, $absolute )
-            ->will( $this->returnValue( $generatedLink ) );
-        $this->assertSame( $generatedLink, $this->router->generate( $location, $parameters, $absolute ) );
+            ->expects($this->once())
+            ->method('generate')
+            ->with($location, $parameters, $referenceType)
+            ->will($this->returnValue($generatedLink));
+        $this->assertSame($generatedLink, $this->router->generate($location, $parameters, $referenceType));
     }
 
     /**
@@ -664,9 +665,9 @@ class UrlAliasRouterTest extends PHPUnit_Framework_TestCase
     public function testGenerateWithLocationId()
     {
         $locationId = 123;
-        $location = new Location( array( 'id' => $locationId ) );
-        $parameters = array( 'some' => 'thing' );
-        $absolute = false;
+        $location = new Location(array('id' => $locationId));
+        $parameters = array('some' => 'thing');
+        $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH;
         $generatedLink = '/foo/bar';
         $this->locationService
             ->expects( $this->once() )
@@ -674,16 +675,16 @@ class UrlAliasRouterTest extends PHPUnit_Framework_TestCase
             ->with( $locationId )
             ->will( $this->returnValue( $location ) );
         $this->urlALiasGenerator
-            ->expects( $this->once() )
-            ->method( 'generate' )
-            ->with( $location, $parameters, $absolute )
-            ->will( $this->returnValue( $generatedLink ) );
+            ->expects($this->once())
+            ->method('generate')
+            ->with($location, $parameters, $referenceType)
+            ->will($this->returnValue($generatedLink));
         $this->assertSame(
             $generatedLink,
             $this->router->generate(
                 UrlAliasRouter::URL_ALIAS_ROUTE_NAME,
-                $parameters + array( 'locationId' => $locationId ),
-                $absolute
+                $parameters + array('locationId' => $locationId),
+                $referenceType
             )
         );
     }
@@ -691,21 +692,21 @@ class UrlAliasRouterTest extends PHPUnit_Framework_TestCase
     public function testGenerateWithLocationAsParameter()
     {
         $locationId = 123;
-        $location = new Location( array( 'id' => $locationId ) );
-        $parameters = array( 'some' => 'thing' );
-        $absolute = false;
+        $location = new Location(array('id' => $locationId));
+        $parameters = array('some' => 'thing');
+        $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH;
         $generatedLink = '/foo/bar';
         $this->urlALiasGenerator
-            ->expects( $this->once() )
-            ->method( 'generate' )
-            ->with( $location, $parameters, $absolute )
-            ->will( $this->returnValue( $generatedLink ) );
+            ->expects($this->once())
+            ->method('generate')
+            ->with($location, $parameters, $referenceType)
+            ->will($this->returnValue($generatedLink));
         $this->assertSame(
             $generatedLink,
             $this->router->generate(
                 UrlAliasRouter::URL_ALIAS_ROUTE_NAME,
-                $parameters + array( 'location' => $location ),
-                $absolute
+                $parameters + array('location' => $location),
+                $referenceType
             )
         );
     }
@@ -714,10 +715,10 @@ class UrlAliasRouterTest extends PHPUnit_Framework_TestCase
     {
         $locationId = 123;
         $contentId = 456;
-        $location = new Location( array( 'id' => $locationId ) );
-        $contentInfo = new ContentInfo( array( 'id' => $contentId, 'mainLocationId' => $locationId ) );
-        $parameters = array( 'some' => 'thing' );
-        $absolute = false;
+        $location = new Location(array('id' => $locationId));
+        $contentInfo = new ContentInfo(array('id' => $contentId, 'mainLocationId' => $locationId));
+        $parameters = array('some' => 'thing');
+        $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH;
         $generatedLink = '/foo/bar';
         $this->contentService
             ->expects( $this->once() )
@@ -730,16 +731,16 @@ class UrlAliasRouterTest extends PHPUnit_Framework_TestCase
             ->with( $contentInfo->mainLocationId )
             ->will( $this->returnValue( $location ) );
         $this->urlALiasGenerator
-            ->expects( $this->once() )
-            ->method( 'generate' )
-            ->with( $location, $parameters, $absolute )
-            ->will( $this->returnValue( $generatedLink ) );
+            ->expects($this->once())
+            ->method('generate')
+            ->with($location, $parameters, $referenceType)
+            ->will($this->returnValue($generatedLink));
         $this->assertSame(
             $generatedLink,
             $this->router->generate(
                 UrlAliasRouter::URL_ALIAS_ROUTE_NAME,
-                $parameters + array( 'contentId' => $contentId ),
-                $absolute
+                $parameters + array('contentId' => $contentId),
+                $referenceType
             )
         );
     }
@@ -750,9 +751,9 @@ class UrlAliasRouterTest extends PHPUnit_Framework_TestCase
     public function testGenerateWithContentIdWithMissingMainLocation()
     {
         $contentId = 456;
-        $contentInfo = new ContentInfo( array( 'id' => $contentId, 'mainLocationId' => null ) );
-        $parameters = array( 'some' => 'thing' );
-        $absolute = false;
+        $contentInfo = new ContentInfo(array('id' => $contentId, 'mainLocationId' => null));
+        $parameters = array('some' => 'thing');
+        $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH;
         $this->contentService
             ->expects( $this->once() )
             ->method( 'loadContentInfo' )
@@ -761,8 +762,8 @@ class UrlAliasRouterTest extends PHPUnit_Framework_TestCase
 
         $this->router->generate(
             UrlAliasRouter::URL_ALIAS_ROUTE_NAME,
-            $parameters + array( 'contentId' => $contentId ),
-            $absolute
+            $parameters + array('contentId' => $contentId),
+            $referenceType
         );
     }
 }

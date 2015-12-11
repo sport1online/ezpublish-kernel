@@ -9,10 +9,11 @@
 
 namespace eZ\Publish\Core\MVC\Symfony\Routing;
 
+use eZ\Publish\Core\MVC\Symfony\SiteAccess;
 use eZ\Publish\Core\MVC\Symfony\SiteAccess\SiteAccessAware;
 use eZ\Publish\Core\MVC\Symfony\SiteAccess\SiteAccessRouterInterface;
-use eZ\Publish\Core\MVC\Symfony\SiteAccess;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RequestContext;
 
 /**
@@ -78,44 +79,40 @@ abstract class Generator implements SiteAccessAware
      * @param mixed $urlResource Type can be anything, depending on the context. It's up to the router to pass the appropriate value to the implementor.
      * @param array $parameters Arbitrary hash of parameters to generate a link.
      *                          SiteAccess name can be provided as 'siteaccess' to generate a link to it (cross siteaccess link).
-     * @param boolean $absolute
+     * @param int $referenceType The type of reference to be generated (one of the constants)
      *
      * @return string
      */
-    public function generate( $urlResource, array $parameters, $absolute = false )
+    public function generate($urlResource, array $parameters, $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH)
     {
         $siteAccess = $this->siteAccess;
         $requestContext = $this->requestContext;
 
         // Retrieving the appropriate SiteAccess to generate the link for.
-        if ( isset( $parameters['siteaccess'] ) )
-        {
-            $siteAccess = $this->siteAccessRouter->matchByName( $parameters['siteaccess'] );
-            if ( $siteAccess instanceof SiteAccess && $siteAccess->matcher instanceof SiteAccess\VersatileMatcher )
-            {
-                $requestContext = $this->getContextBySimplifiedRequest( $siteAccess->matcher->getRequest() );
-            }
-            else if ( $this->logger )
-            {
-                $siteAccess = $this->siteAccess;
-                $this->logger->notice( "Could not generate a link using provided 'siteaccess' parameter: {$parameters['siteaccess']}. Generating using current context." );
-                unset( $parameters['siteaccess'] );
+        if (isset($parameters['siteaccess'])) {
+            $siteAccess = $this->siteAccessRouter->matchByName($parameters['siteaccess']);
+            if ($siteAccess instanceof SiteAccess && $siteAccess->matcher instanceof SiteAccess\VersatileMatcher) {
+                $requestContext = $this->getContextBySimplifiedRequest($siteAccess->matcher->getRequest());
+            } else {
+                if ($this->logger) {
+                    $siteAccess = $this->siteAccess;
+                    $this->logger->notice("Could not generate a link using provided 'siteaccess' parameter: {$parameters['siteaccess']}. Generating using current context.");
+                    unset($parameters['siteaccess']);
+                }
             }
         }
 
-        $url = $this->doGenerate( $urlResource, $parameters );
+        $url = $this->doGenerate($urlResource, $parameters);
 
         // Add the SiteAccess URI back if needed.
-        if ( $siteAccess && $siteAccess->matcher instanceof SiteAccess\URILexer )
-        {
-            $url = $siteAccess->matcher->analyseLink( $url );
+        if ($siteAccess && $siteAccess->matcher instanceof SiteAccess\URILexer) {
+            $url = $siteAccess->matcher->analyseLink($url);
         }
 
         $url = $requestContext->getBaseUrl() . $url;
 
-        if ( $absolute )
-        {
-            $url = $this->generateAbsoluteUrl( $url, $requestContext );
+        if ($referenceType === UrlGeneratorInterface::ABSOLUTE_URL) {
+            $url = $this->generateAbsoluteUrl($url, $requestContext);
         }
 
         return $url;
