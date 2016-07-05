@@ -1,6 +1,6 @@
 <?php
 /**
- * File containing the Country converter
+ * File containing the Mail converter
  *
  * @copyright Copyright (C) eZ Systems AS. All rights reserved.
  * @license For full copyright and license information view LICENSE file distributed with this source code.
@@ -11,19 +11,20 @@ namespace eZ\Publish\Core\Persistence\Legacy\Content\FieldValue\Converter;
 
 use eZ\Publish\Core\Persistence\Legacy\Content\FieldValue\Converter;
 use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldValue;
-use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldDefinition;
 use eZ\Publish\SPI\Persistence\Content\FieldValue;
 use eZ\Publish\SPI\Persistence\Content\Type\FieldDefinition;
-use eZ\Publish\Core\FieldType\FieldSettings;
+use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldDefinition;
 
-class Country implements Converter
+class EmailAddressConverter implements Converter
 {
+    const VALIDATOR_IDENTIFIER = "EmailAddressValidator";
+
     /**
      * Factory for current class
      *
      * @note Class should instead be configured as service if it gains dependencies.
      *
-     * @return Country
+     * @return \eZ\Publish\Core\Persistence\Legacy\Content\FieldValue\Converter\EmailAddress
      */
     public static function create()
     {
@@ -38,7 +39,7 @@ class Country implements Converter
      */
     public function toStorageValue( FieldValue $value, StorageFieldValue $storageFieldValue )
     {
-        $storageFieldValue->dataText = empty( $value->data ) ? "" : implode( ",", $value->data );
+        $storageFieldValue->dataText      = $value->data;
         $storageFieldValue->sortKeyString = $value->sortKey;
     }
 
@@ -50,7 +51,7 @@ class Country implements Converter
      */
     public function toFieldValue( StorageFieldValue $value, FieldValue $fieldValue )
     {
-        $fieldValue->data = empty( $value->dataText ) ? null : explode( ",", $value->dataText );
+        $fieldValue->data    = $value->dataText;
         $fieldValue->sortKey = $value->sortKeyString;
     }
 
@@ -62,14 +63,7 @@ class Country implements Converter
      */
     public function toStorageFieldDefinition( FieldDefinition $fieldDef, StorageFieldDefinition $storageDef )
     {
-        if ( isset( $fieldDef->fieldTypeConstraints->fieldSettings["isMultiple"] ) )
-        {
-            $storageDef->dataInt1 = (int)$fieldDef->fieldTypeConstraints->fieldSettings["isMultiple"];
-        }
-
-        $storageDef->dataText5 = $fieldDef->defaultValue->data === null
-            ? ""
-            : implode( ",", $fieldDef->defaultValue->data );
+        $storageDef->dataText1 = $fieldDef->defaultValue->data;
     }
 
     /**
@@ -80,18 +74,10 @@ class Country implements Converter
      */
     public function toFieldDefinition( StorageFieldDefinition $storageDef, FieldDefinition $fieldDef )
     {
-        $fieldDef->fieldTypeConstraints->fieldSettings = new FieldSettings(
-            array(
-                "isMultiple" => !empty( $storageDef->dataInt1 ) ? (bool)$storageDef->dataInt1 : false
-            )
-        );
-
-        $fieldDef->defaultValue->data = empty( $storageDef->dataText5 )
-            ? null
-            : explode( ",", $storageDef->dataText5 );
-        // TODO This will contain comma separated country codes, which is correct for value but not for sort key.
-        // Sort key should contain comma separated lowercased country names.
-        $fieldDef->defaultValue->sortKey = $storageDef->dataText5;
+        $validatorConstraints = array( self::VALIDATOR_IDENTIFIER => array() );
+        $fieldDef->fieldTypeConstraints->validators = $validatorConstraints;
+        $fieldDef->defaultValue->data = isset( $storageDef->dataText1 ) ? $storageDef->dataText1 : '';
+        $fieldDef->defaultValue->sortKey = $fieldDef->defaultValue->data;
     }
 
     /**
@@ -105,6 +91,6 @@ class Country implements Converter
      */
     public function getIndexColumn()
     {
-        return "sort_key_string";
+        return 'sort_key_string';
     }
 }

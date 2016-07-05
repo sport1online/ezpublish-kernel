@@ -1,6 +1,6 @@
 <?php
 /**
- * File containing the TextLine converter
+ * File containing the Float converter
  *
  * @copyright Copyright (C) eZ Systems AS. All rights reserved.
  * @license For full copyright and license information view LICENSE file distributed with this source code.
@@ -15,16 +15,19 @@ use eZ\Publish\SPI\Persistence\Content\FieldValue;
 use eZ\Publish\SPI\Persistence\Content\Type\FieldDefinition;
 use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldDefinition;
 
-class TextLine implements Converter
+class FloatConverter implements Converter
 {
-    const STRING_LENGTH_VALIDATOR_IDENTIFIER = "StringLengthValidator";
+    const FLOAT_VALIDATOR_IDENTIFIER = "FloatValueValidator";
+
+    const HAS_MIN_VALUE = 1;
+    const HAS_MAX_VALUE = 2;
 
     /**
      * Factory for current class
      *
      * @note Class should instead be configured as service if it gains dependencies.
      *
-     * @return TextLine
+     * @return Float
      */
     public static function create()
     {
@@ -39,8 +42,8 @@ class TextLine implements Converter
      */
     public function toStorageValue( FieldValue $value, StorageFieldValue $storageFieldValue )
     {
-        $storageFieldValue->dataText = $value->data;
-        $storageFieldValue->sortKeyString = $value->sortKey;
+        $storageFieldValue->dataFloat = $value->data;
+        $storageFieldValue->sortKeyInt = $value->sortKey;
     }
 
     /**
@@ -51,8 +54,8 @@ class TextLine implements Converter
      */
     public function toFieldValue( StorageFieldValue $value, FieldValue $fieldValue )
     {
-        $fieldValue->data = $value->dataText;
-        $fieldValue->sortKey = $value->sortKeyString;
+        $fieldValue->data = $value->dataFloat;
+        $fieldValue->sortKey = $value->sortKeyInt;
     }
 
     /**
@@ -63,55 +66,43 @@ class TextLine implements Converter
      */
     public function toStorageFieldDefinition( FieldDefinition $fieldDef, StorageFieldDefinition $storageDef )
     {
-        if ( isset( $fieldDef->fieldTypeConstraints->validators[self::STRING_LENGTH_VALIDATOR_IDENTIFIER]['maxStringLength'] ) )
+        if ( isset( $fieldDef->fieldTypeConstraints->validators[self::FLOAT_VALIDATOR_IDENTIFIER]['minFloatValue'] ) )
         {
-            $storageDef->dataInt1 = $fieldDef->fieldTypeConstraints->validators[self::STRING_LENGTH_VALIDATOR_IDENTIFIER]['maxStringLength'];
-        }
-        else
-        {
-            $storageDef->dataInt1 = 0;
+            $storageDef->dataFloat1 = $fieldDef->fieldTypeConstraints->validators[self::FLOAT_VALIDATOR_IDENTIFIER]['minFloatValue'];
         }
 
-        if ( isset( $fieldDef->fieldTypeConstraints->validators[self::STRING_LENGTH_VALIDATOR_IDENTIFIER]['minStringLength'] ) )
+        if ( isset( $fieldDef->fieldTypeConstraints->validators[self::FLOAT_VALIDATOR_IDENTIFIER]['maxFloatValue'] ) )
         {
-            $storageDef->dataInt2 = $fieldDef->fieldTypeConstraints->validators[self::STRING_LENGTH_VALIDATOR_IDENTIFIER]['minStringLength'];
-        }
-        else
-        {
-            $storageDef->dataInt2 = 0;
+            $storageDef->dataFloat2 = $fieldDef->fieldTypeConstraints->validators[self::FLOAT_VALIDATOR_IDENTIFIER]['maxFloatValue'];
         }
 
-        $storageDef->dataText1 = $fieldDef->defaultValue->data;
+        // Defining dataFloat4 which holds the validator state (min value/max value)
+        $storageDef->dataFloat4 = $this->getStorageDefValidatorState( $storageDef->dataFloat1, $storageDef->dataFloat2 );
+        $storageDef->dataFloat3 = $fieldDef->defaultValue->data;
     }
 
     /**
      * Converts field definition data in $storageDef into $fieldDef
      *
+     * The constant (HAS_MIN_VALUE, HAS_MAX_VALUE) are set if the field max or min are define
      * @param \eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldDefinition $storageDef
      * @param \eZ\Publish\SPI\Persistence\Content\Type\FieldDefinition $fieldDef
      */
     public function toFieldDefinition( StorageFieldDefinition $storageDef, FieldDefinition $fieldDef )
     {
-        $validatorConstraints = array();
-
-        if ( isset( $storageDef->dataInt1 ) )
+        $validatorParameters = array( 'minFloatValue' => false, 'maxFloatValue' => false );
+        if ( $storageDef->dataFloat4 & self::HAS_MIN_VALUE )
         {
-            $validatorConstraints[self::STRING_LENGTH_VALIDATOR_IDENTIFIER]["maxStringLength"] =
-                $storageDef->dataInt1 != 0 ?
-                    (int)$storageDef->dataInt1 :
-                    false;
-        }
-        if ( isset( $storageDef->dataInt2 ) )
-        {
-            $validatorConstraints[self::STRING_LENGTH_VALIDATOR_IDENTIFIER]["minStringLength"] =
-                $storageDef->dataInt2 != 0 ?
-                    (int)$storageDef->dataInt2 :
-                    false;
+            $validatorParameters['minFloatValue'] = $storageDef->dataFloat1;
         }
 
-        $fieldDef->fieldTypeConstraints->validators = $validatorConstraints;
-        $fieldDef->defaultValue->data = $storageDef->dataText1 ?: null;
-        $fieldDef->defaultValue->sortKey = $storageDef->dataText1 ?: "";
+        if ( $storageDef->dataFloat4 & self::HAS_MAX_VALUE )
+        {
+            $validatorParameters['maxFloatValue'] = $storageDef->dataFloat2;
+        }
+        $fieldDef->fieldTypeConstraints->validators[self::FLOAT_VALIDATOR_IDENTIFIER] = $validatorParameters;
+        $fieldDef->defaultValue->data = $storageDef->dataFloat3;
+        $fieldDef->defaultValue->sortKey = 0;
     }
 
     /**
@@ -125,6 +116,34 @@ class TextLine implements Converter
      */
     public function getIndexColumn()
     {
-        return 'sort_key_string';
+        return 'sort_key_int';
+    }
+
+    /**
+     * Returns validator state for storage definition.
+     * Validator state is a bitfield value composed of:
+     * - {@link self::HAS_MAX_VALUE}
+     * - {@link self::HAS_MIN_VALUE}
+     *
+     * @param int|null $minValue Minimum int value, or null if not set
+     * @param int|null $maxValue Maximum int value, or null if not set
+     *
+     * @return int
+     */
+    private function getStorageDefValidatorState( $minValue, $maxValue )
+    {
+        $state = 0;
+
+        if ( $minValue !== null )
+        {
+            $state |= self::HAS_MIN_VALUE;
+        }
+
+        if ( $maxValue !== null )
+        {
+            $state |= self::HAS_MAX_VALUE;
+        }
+
+        return $state;
     }
 }

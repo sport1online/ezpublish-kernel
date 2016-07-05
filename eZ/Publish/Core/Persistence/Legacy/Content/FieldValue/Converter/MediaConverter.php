@@ -14,7 +14,7 @@ use eZ\Publish\SPI\Persistence\Content\Type\FieldDefinition;
 use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldDefinition;
 use eZ\Publish\Core\FieldType\FieldSettings;
 
-class Media extends BinaryFile
+class MediaConverter extends BinaryFileConverter
 {
     /**
      * Factory for current class

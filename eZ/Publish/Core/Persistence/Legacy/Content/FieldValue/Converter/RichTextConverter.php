@@ -17,7 +17,7 @@ use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldDefinition;
 use eZ\Publish\Core\FieldType\FieldSettings;
 use eZ\Publish\Core\FieldType\RichText\Value;
 
-class RichText implements Converter
+class RichTextConverter implements Converter
 {
     /**
      * Factory for current class
