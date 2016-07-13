@@ -243,7 +243,8 @@ class Type extends FieldType
      */
     protected function getSortInfo( BaseValue $value )
     {
-        return $this->transformationProcessor->transformByGroup( (string)$value, "lowercase" );
+        $value = substr((string)$value,0, 255);
+        return $this->transformationProcessor->transformByGroup( $value, "lowercase" );
     }
 
     /**
