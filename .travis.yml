@@ -57,6 +57,10 @@ matrix:
       env: SOLR_VERSION="4.9.1" TEST_CONFIG="phpunit-integration-legacy-solr.xml"
     - php: 5.6
       env: ELASTICSEARCH_VERSION="1.4.0" TEST_CONFIG="phpunit-integration-legacy-elasticsearch.xml"
+# 7.0
+    - php: 7.0
+      env: REST_TEST_CONFIG="phpunit-functional-rest.xml" RUN_INSTALL=1 SYMFONY_ENV=dev SYMFONY_DEBUG=1
+    - php: 7.0
 # hhvm run: unit test + sqlite integration test
     - php: hhvm
       env: TEST_CONFIG="phpunit.xml"

@@ -33,6 +33,6 @@ class IntegrationTestCacheServiceDecorator extends CacheServiceDecorator
      */
     public function clearAllTestData()
     {
-        $this->cachePool->flush();
+        $this->cachePool->clear();
     }
 }
