@@ -1,6 +1,6 @@
 <?php
 /**
- * File containing the TextBlock converter
+ * File containing the Url converter
  *
  * @copyright Copyright (C) eZ Systems AS. All rights reserved.
  * @license For full copyright and license information view LICENSE file distributed with this source code.
@@ -14,16 +14,15 @@ use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldValue;
 use eZ\Publish\SPI\Persistence\Content\FieldValue;
 use eZ\Publish\SPI\Persistence\Content\Type\FieldDefinition;
 use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldDefinition;
-use eZ\Publish\Core\FieldType\FieldSettings;
 
-class TextBlock implements Converter
+class UrlConverter implements Converter
 {
     /**
      * Factory for current class
      *
      * @note Class should instead be configured as service if it gains dependencies.
      *
-     * @return TextBlock
+     * @return Url
      */
     public static function create()
     {
@@ -38,8 +37,12 @@ class TextBlock implements Converter
      */
     public function toStorageValue( FieldValue $value, StorageFieldValue $storageFieldValue )
     {
-        $storageFieldValue->dataText = $value->data;
-        $storageFieldValue->sortKeyString = $value->sortKey;
+        $storageFieldValue->dataText = isset( $value->data['text'] )
+            ? $value->data['text']
+            : null;
+        $storageFieldValue->dataInt = isset( $value->data['urlId'] )
+            ? $value->data['urlId']
+            : null;
     }
 
     /**
@@ -50,8 +53,11 @@ class TextBlock implements Converter
      */
     public function toFieldValue( StorageFieldValue $value, FieldValue $fieldValue )
     {
-        $fieldValue->data = $value->dataText;
-        $fieldValue->sortKey = $value->sortKeyString;
+        $fieldValue->data = array(
+            "urlId" => $value->dataInt,
+            'text' => $value->dataText,
+        );
+        $fieldValue->sortKey = false;
     }
 
     /**
@@ -62,10 +68,6 @@ class TextBlock implements Converter
      */
     public function toStorageFieldDefinition( FieldDefinition $fieldDef, StorageFieldDefinition $storageDef )
     {
-        if ( isset( $fieldDef->fieldTypeConstraints->fieldSettings["textRows"] ) )
-        {
-            $storageDef->dataInt1 = $fieldDef->fieldTypeConstraints->fieldSettings["textRows"];
-        }
     }
 
     /**
@@ -76,13 +78,9 @@ class TextBlock implements Converter
      */
     public function toFieldDefinition( StorageFieldDefinition $storageDef, FieldDefinition $fieldDef )
     {
-        $fieldDef->fieldTypeConstraints->fieldSettings = new FieldSettings(
-            array(
-                "textRows" => $storageDef->dataInt1
-            )
-        );
-        $fieldDef->defaultValue->data = null;
-        $fieldDef->defaultValue->sortKey = "";
+        // @todo: Is it possible to store a default value in the DB?
+        $fieldDef->defaultValue = new FieldValue();
+        $fieldDef->defaultValue->data = array( 'text' => null );
     }
 
     /**
@@ -92,10 +90,10 @@ class TextBlock implements Converter
      * "sort_key_int" or "sort_key_string". This column is then used for
      * filtering and sorting for this type.
      *
-     * @return string
+     * @return false
      */
     public function getIndexColumn()
     {
-        return 'sort_key_string';
+        return false;
     }
 }

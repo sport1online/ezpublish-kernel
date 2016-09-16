@@ -1,6 +1,6 @@
 <?php
 /**
- * File containing the Rating converter
+ * File containing the Image converter
  *
  * @copyright Copyright (C) eZ Systems AS. All rights reserved.
  * @license For full copyright and license information view LICENSE file distributed with this source code.
@@ -12,17 +12,18 @@ namespace eZ\Publish\Core\Persistence\Legacy\Content\FieldValue\Converter;
 use eZ\Publish\Core\Persistence\Legacy\Content\FieldValue\Converter;
 use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldValue;
 use eZ\Publish\SPI\Persistence\Content\FieldValue;
+use eZ\Publish\SPI\Persistence\Content\FieldTypeConstraints;
 use eZ\Publish\SPI\Persistence\Content\Type\FieldDefinition;
 use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldDefinition;
 
-class Rating implements Converter
+class BinaryFileConverter implements Converter
 {
     /**
      * Factory for current class
      *
      * @note Class should instead be configured as service if it gains dependencies.
      *
-     * @return Rating
+     * @return Image
      */
     public static function create()
     {
@@ -37,7 +38,6 @@ class Rating implements Converter
      */
     public function toStorageValue( FieldValue $value, StorageFieldValue $storageFieldValue )
     {
-        $storageFieldValue->dataInt = $value->data ? 1 : null;
     }
 
     /**
@@ -48,7 +48,6 @@ class Rating implements Converter
      */
     public function toFieldValue( StorageFieldValue $value, FieldValue $fieldValue )
     {
-        $fieldValue->data = (bool)$value->dataInt;
     }
 
     /**
@@ -59,6 +58,9 @@ class Rating implements Converter
      */
     public function toStorageFieldDefinition( FieldDefinition $fieldDef, StorageFieldDefinition $storageDef )
     {
+        $storageDef->dataInt1 = ( isset( $fieldDef->fieldTypeConstraints->validators['FileSizeValidator']['maxFileSize'] )
+            ? $fieldDef->fieldTypeConstraints->validators['FileSizeValidator']['maxFileSize']
+            : 0 );
     }
 
     /**
@@ -69,7 +71,17 @@ class Rating implements Converter
      */
     public function toFieldDefinition( StorageFieldDefinition $storageDef, FieldDefinition $fieldDef )
     {
-        $fieldDef->defaultValue->data = false;
+        $fieldDef->fieldTypeConstraints = new FieldTypeConstraints(
+            array(
+                'validators' => array(
+                    'FileSizeValidator' => array(
+                        'maxFileSize' => ( $storageDef->dataInt1 != 0
+                            ? $storageDef->dataInt1
+                            : false ),
+                    )
+                )
+            )
+        );
     }
 
     /**
@@ -83,6 +95,7 @@ class Rating implements Converter
      */
     public function getIndexColumn()
     {
-        return false;
+        // @todo: Correct?
+        return 'sort_key_string';
     }
 }

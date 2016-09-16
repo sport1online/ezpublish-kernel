@@ -1,6 +1,6 @@
 <?php
 /**
- * File containing the Float converter
+ * File containing the Time field value converter class
  *
  * @copyright Copyright (C) eZ Systems AS. All rights reserved.
  * @license For full copyright and license information view LICENSE file distributed with this source code.
@@ -14,20 +14,21 @@ use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldValue;
 use eZ\Publish\SPI\Persistence\Content\FieldValue;
 use eZ\Publish\SPI\Persistence\Content\Type\FieldDefinition;
 use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldDefinition;
+use eZ\Publish\Core\FieldType\Time\Type as TimeType;
+use eZ\Publish\Core\FieldType\FieldSettings;
+use DateTime;
 
-class Float implements Converter
+/**
+ * Time field value converter class
+ */
+class TimeConverter implements Converter
 {
-    const FLOAT_VALIDATOR_IDENTIFIER = "FloatValueValidator";
-
-    const HAS_MIN_VALUE = 1;
-    const HAS_MAX_VALUE = 2;
-
     /**
      * Factory for current class
      *
      * @note Class should instead be configured as service if it gains dependencies.
      *
-     * @return Float
+     * @return \eZ\Publish\Core\Persistence\Legacy\Content\FieldValue\Converter\Time
      */
     public static function create()
     {
@@ -42,8 +43,8 @@ class Float implements Converter
      */
     public function toStorageValue( FieldValue $value, StorageFieldValue $storageFieldValue )
     {
-        $storageFieldValue->dataFloat = $value->data;
-        $storageFieldValue->sortKeyInt = $value->sortKey;
+        $storageFieldValue->dataInt = ( $value->data !== null ? $value->data : null );
+        $storageFieldValue->sortKeyInt = (int)$value->sortKey;
     }
 
     /**
@@ -54,7 +55,12 @@ class Float implements Converter
      */
     public function toFieldValue( StorageFieldValue $value, FieldValue $fieldValue )
     {
-        $fieldValue->data = $value->dataFloat;
+        if ( $value->dataInt === null )
+        {
+            return;
+        }
+
+        $fieldValue->data = $value->dataInt;
         $fieldValue->sortKey = $value->sortKeyInt;
     }
 
@@ -66,43 +72,37 @@ class Float implements Converter
      */
     public function toStorageFieldDefinition( FieldDefinition $fieldDef, StorageFieldDefinition $storageDef )
     {
-        if ( isset( $fieldDef->fieldTypeConstraints->validators[self::FLOAT_VALIDATOR_IDENTIFIER]['minFloatValue'] ) )
-        {
-            $storageDef->dataFloat1 = $fieldDef->fieldTypeConstraints->validators[self::FLOAT_VALIDATOR_IDENTIFIER]['minFloatValue'];
-        }
-
-        if ( isset( $fieldDef->fieldTypeConstraints->validators[self::FLOAT_VALIDATOR_IDENTIFIER]['maxFloatValue'] ) )
-        {
-            $storageDef->dataFloat2 = $fieldDef->fieldTypeConstraints->validators[self::FLOAT_VALIDATOR_IDENTIFIER]['maxFloatValue'];
-        }
-
-        // Defining dataFloat4 which holds the validator state (min value/max value)
-        $storageDef->dataFloat4 = $this->getStorageDefValidatorState( $storageDef->dataFloat1, $storageDef->dataFloat2 );
-        $storageDef->dataFloat3 = $fieldDef->defaultValue->data;
+        $storageDef->dataInt1 = $fieldDef->fieldTypeConstraints->fieldSettings["defaultType"];
+        $storageDef->dataInt2 = $fieldDef->fieldTypeConstraints->fieldSettings["useSeconds"] ? 1 : 0;
     }
 
     /**
      * Converts field definition data in $storageDef into $fieldDef
      *
-     * The constant (HAS_MIN_VALUE, HAS_MAX_VALUE) are set if the field max or min are define
      * @param \eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldDefinition $storageDef
      * @param \eZ\Publish\SPI\Persistence\Content\Type\FieldDefinition $fieldDef
      */
     public function toFieldDefinition( StorageFieldDefinition $storageDef, FieldDefinition $fieldDef )
     {
-        $validatorParameters = array( 'minFloatValue' => false, 'maxFloatValue' => false );
-        if ( $storageDef->dataFloat4 & self::HAS_MIN_VALUE )
+        $fieldDef->fieldTypeConstraints->fieldSettings = new FieldSettings(
+            array(
+                "defaultType" => $storageDef->dataInt1,
+                "useSeconds" => (bool)$storageDef->dataInt2
+            )
+        );
+
+        // Building default value
+        switch ( $fieldDef->fieldTypeConstraints->fieldSettings["defaultType"] )
         {
-            $validatorParameters['minFloatValue'] = $storageDef->dataFloat1;
+            case TimeType::DEFAULT_CURRENT_TIME:
+                $dateTime = new DateTime();
+                $data = $dateTime->getTimestamp() - $dateTime->setTime( 0, 0, 0 )->getTimestamp();
+                break;
+            default:
+                $data = null;
         }
 
-        if ( $storageDef->dataFloat4 & self::HAS_MAX_VALUE )
-        {
-            $validatorParameters['maxFloatValue'] = $storageDef->dataFloat2;
-        }
-        $fieldDef->fieldTypeConstraints->validators[self::FLOAT_VALIDATOR_IDENTIFIER] = $validatorParameters;
-        $fieldDef->defaultValue->data = $storageDef->dataFloat3;
-        $fieldDef->defaultValue->sortKey = 0;
+        $fieldDef->defaultValue->data = $data;
     }
 
     /**
@@ -116,34 +116,6 @@ class Float implements Converter
      */
     public function getIndexColumn()
     {
-        return 'sort_key_int';
-    }
-
-    /**
-     * Returns validator state for storage definition.
-     * Validator state is a bitfield value composed of:
-     * - {@link self::HAS_MAX_VALUE}
-     * - {@link self::HAS_MIN_VALUE}
-     *
-     * @param int|null $minValue Minimum int value, or null if not set
-     * @param int|null $maxValue Maximum int value, or null if not set
-     *
-     * @return int
-     */
-    private function getStorageDefValidatorState( $minValue, $maxValue )
-    {
-        $state = 0;
-
-        if ( $minValue !== null )
-        {
-            $state |= self::HAS_MIN_VALUE;
-        }
-
-        if ( $maxValue !== null )
-        {
-            $state |= self::HAS_MAX_VALUE;
-        }
-
-        return $state;
+        return "sort_key_int";
     }
 }

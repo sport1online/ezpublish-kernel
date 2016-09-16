@@ -1,6 +1,6 @@
 <?php
 /**
- * File containing the Null converter
+ * File containing the Rating converter
  *
  * @copyright Copyright (C) eZ Systems AS. All rights reserved.
  * @license For full copyright and license information view LICENSE file distributed with this source code.
@@ -15,17 +15,14 @@ use eZ\Publish\SPI\Persistence\Content\FieldValue;
 use eZ\Publish\SPI\Persistence\Content\Type\FieldDefinition;
 use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldDefinition;
 
-/**
- * The Null converter does not perform any conversions at all.
- */
-class Null implements Converter
+class RatingConverter implements Converter
 {
     /**
      * Factory for current class
      *
      * @note Class should instead be configured as service if it gains dependencies.
      *
-     * @return TextBlock
+     * @return Rating
      */
     public static function create()
     {
@@ -40,8 +37,7 @@ class Null implements Converter
      */
     public function toStorageValue( FieldValue $value, StorageFieldValue $storageFieldValue )
     {
-        // There is no contained data. All data is external. So we just do
-        // nothing here.
+        $storageFieldValue->dataInt = $value->data ? 1 : null;
     }
 
     /**
@@ -52,8 +48,7 @@ class Null implements Converter
      */
     public function toFieldValue( StorageFieldValue $value, FieldValue $fieldValue )
     {
-        // There is no contained data. All data is external. So we just do
-        // nothing here.
+        $fieldValue->data = (bool)$value->dataInt;
     }
 
     /**
@@ -64,8 +59,6 @@ class Null implements Converter
      */
     public function toStorageFieldDefinition( FieldDefinition $fieldDef, StorageFieldDefinition $storageDef )
     {
-        // There is no contained data. All data is external. So we just do
-        // nothing here.
     }
 
     /**
@@ -76,8 +69,7 @@ class Null implements Converter
      */
     public function toFieldDefinition( StorageFieldDefinition $storageDef, FieldDefinition $fieldDef )
     {
-        // There is no contained data. All data is external. So we just do
-        // nothing here.
+        $fieldDef->defaultValue->data = false;
     }
 
     /**

@@ -1,10 +1,10 @@
 <?php
 /**
- * File containing the Relation converter
+ * File containing the ISBN converter
  *
  * @copyright Copyright (C) eZ Systems AS. All rights reserved.
  * @license For full copyright and license information view LICENSE file distributed with this source code.
- * @version //autogentag//
+ * @version 
  */
 
 namespace eZ\Publish\Core\Persistence\Legacy\Content\FieldValue\Converter;
@@ -14,15 +14,16 @@ use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldValue;
 use eZ\Publish\SPI\Persistence\Content\FieldValue;
 use eZ\Publish\SPI\Persistence\Content\Type\FieldDefinition;
 use eZ\Publish\Core\Persistence\Legacy\Content\StorageFieldDefinition;
+use eZ\Publish\Core\FieldType\FieldSettings;
 
-class Relation implements Converter
+class ISBNConverter implements Converter
 {
     /**
      * Factory for current class
      *
      * @note Class should instead be configured as service if it gains dependencies.
      *
-     * @return Url
+     * @return ISBN
      */
     public static function create()
     {
@@ -37,10 +38,8 @@ class Relation implements Converter
      */
     public function toStorageValue( FieldValue $value, StorageFieldValue $storageFieldValue )
     {
-        $storageFieldValue->dataInt = !empty( $value->data['destinationContentId'] )
-            ? $value->data['destinationContentId']
-            : null;
-        $storageFieldValue->sortKeyInt = (int)$value->sortKey;
+        $storageFieldValue->dataText = $value->data;
+        $storageFieldValue->sortKeyString = $value->sortKey;
     }
 
     /**
@@ -51,10 +50,8 @@ class Relation implements Converter
      */
     public function toFieldValue( StorageFieldValue $value, FieldValue $fieldValue )
     {
-        $fieldValue->data = array(
-            "destinationContentId" => $value->dataInt ?: null,
-        );
-        $fieldValue->sortKey = (int)$value->sortKeyInt;
+        $fieldValue->data = $value->dataText;
+        $fieldValue->sortKey = $value->sortKeyString;
     }
 
     /**
@@ -65,11 +62,16 @@ class Relation implements Converter
      */
     public function toStorageFieldDefinition( FieldDefinition $fieldDef, StorageFieldDefinition $storageDef )
     {
-        // Selection method, 0 = browse, 1 = dropdown
-        $storageDef->dataInt1 = $fieldDef->fieldTypeConstraints->fieldSettings['selectionMethod'];
+        if ( isset( $fieldDef->fieldTypeConstraints->fieldSettings["isISBN13"] ) )
+        {
+            $storageDef->dataInt1 = $fieldDef->fieldTypeConstraints->fieldSettings["isISBN13"];
+        }
+        else
+        {
+            $storageDef->dataInt1 = 1;
+        }
 
-        // Selection root, location ID
-        $storageDef->dataInt2 = (int)$fieldDef->fieldTypeConstraints->fieldSettings['selectionRoot'];
+        $storageDef->dataText1 = $fieldDef->defaultValue->data;
     }
 
     /**
@@ -80,15 +82,14 @@ class Relation implements Converter
      */
     public function toFieldDefinition( StorageFieldDefinition $storageDef, FieldDefinition $fieldDef )
     {
-        // Selection method, 0 = browse, 1 = dropdown
-        $fieldDef->fieldTypeConstraints->fieldSettings['selectionMethod'] = $storageDef->dataInt1;
+        $fieldDef->fieldTypeConstraints->fieldSettings = new FieldSettings(
+            array(
+                "isISBN13" => !empty( $storageDef->dataInt1 ) ? (bool)$storageDef->dataInt1 : true
+            )
+        );
 
-        // Selection root, location ID
-
-        $fieldDef->fieldTypeConstraints->fieldSettings['selectionRoot'] =
-            $storageDef->dataInt2 === 0
-            ? ''
-            : $storageDef->dataInt2;
+        $fieldDef->defaultValue->data = $storageDef->dataText1 ?: null;
+        $fieldDef->defaultValue->sortKey = $storageDef->dataText1 ?: "";
     }
 
     /**
@@ -98,10 +99,10 @@ class Relation implements Converter
      * "sort_key_int" or "sort_key_string". This column is then used for
      * filtering and sorting for this type.
      *
-     * @return false
+     * @return string
      */
     public function getIndexColumn()
     {
-        return 'sort_key_int';
+        return 'sort_key_string';
     }
 }
