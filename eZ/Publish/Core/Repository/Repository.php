@@ -191,6 +191,11 @@ class Repository implements RepositoryInterface
     private $transactionCount = 0;
 
     /**
+     * @var array
+     */
+    private $failedPasses = array();
+
+    /**
 
     /**
      * Constructor
@@ -375,6 +380,13 @@ class Repository implements RepositoryInterface
     }
 
     /**
+     * @return array
+     */
+    public function getFailedPasses(){
+        return $this->failedPasses;
+    }
+
+    /**
      * Check if user has access to a given action on a given value object
      *
      * Indicates if the current user is allowed to perform an action given by the function on the given
@@ -392,6 +404,7 @@ class Repository implements RepositoryInterface
      */
     public function canUser( $module, $function, ValueObject $object, $targets = null )
     {
+        $this->failedPasses = array();
         $permissionSets = $this->hasAccess( $module, $function );
         if ( $permissionSets === false || $permissionSets === true )
         {
@@ -470,6 +483,7 @@ class Repository implements RepositoryInterface
                      */
                     if ( $accessVote !== LimitationType::ACCESS_GRANTED )
                     {
+                        $this->failedPasses[] = get_class($type);
                         $limitationsPass = false;
                         break;// Break to next policy, all limitations must pass
                     }
