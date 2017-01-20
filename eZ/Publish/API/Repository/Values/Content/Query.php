@@ -93,7 +93,7 @@ class Query extends ValueObject
      *
      * @var boolean
      */
-    public $performCount = true;
+    public $performCount = false;
 
     /**
      * Wrapper for deprecated $criterion property
