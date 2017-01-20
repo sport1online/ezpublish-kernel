@@ -119,8 +119,7 @@ class DoctrineDatabase extends Gateway
     {
         $limit = $limit !== null ? $limit : self::MAX_LIMIT;
 
-        $fieldMap = $this->getFieldMap( $sort );
-        $count = $doCount ? $this->getResultCount( $criterion, $sort, $translations, $fieldMap ) : null;
+        $count = $doCount ? $this->getResultCount( $criterion, $sort, $translations ) : null;
 
         if ( !$doCount && $limit === 0 )
         {
@@ -132,7 +131,7 @@ class DoctrineDatabase extends Gateway
             return array( 'count' => $count, 'rows' => array() );
         }
 
-        $contentInfoList = $this->getContentInfoList( $criterion, $sort, $offset, $limit, $translations, $fieldMap );
+        $contentInfoList = $this->getContentInfoList( $criterion, $sort, $offset, $limit, $translations );
 
         return array(
             'count' => $count,
