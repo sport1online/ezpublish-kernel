@@ -21,6 +21,7 @@ use eZ\Publish\API\Repository\Repository as RepositoryInterface;
 use eZ\Publish\API\Repository\Values\Content\Search\SearchResult;
 use eZ\Publish\Core\Base\Exceptions\NotFoundException;
 use eZ\Publish\Core\Base\Exceptions\InvalidArgumentException;
+use eZ\Publish\Core\Base\Exceptions\UnauthorizedException;
 use eZ\Publish\SPI\Search\Handler;
 use eZ\Publish\SPI\Search\Location\Handler as LocationSearchHandler;
 
@@ -135,14 +136,18 @@ class SearchService implements SearchServiceInterface
         $result = $this->searchHandler->findContent( $query, $fieldFilters );
 
         $contentService = $this->repository->getContentService();
-        foreach ( $result->searchHits as $hit )
+        foreach ( $result->searchHits as $index => $hit )
         {
-            $hit->valueObject = $contentService->loadContent(
-                $hit->valueObject->id,
-                ( !empty( $fieldFilters['languages'] ) ? $fieldFilters['languages'] : null ),
-                null,
-                ( isset( $fieldFilters['useAlwaysAvailable'] ) ? $fieldFilters['useAlwaysAvailable'] : true )
-            );
+            try {
+                $hit->valueObject = $contentService->loadContent(
+                    $hit->valueObject->id,
+                    ( !empty( $fieldFilters['languages'] ) ? $fieldFilters['languages'] : null ),
+                    null,
+                    ( isset( $fieldFilters['useAlwaysAvailable'] ) ? $fieldFilters['useAlwaysAvailable'] : true )
+                );
+            } catch (UnauthorizedException $e) {
+                unset($result->searchHits[$index]);
+            }
         }
 
         return $result;
