@@ -46,13 +46,6 @@ class TemplateTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers \eZ\Publish\Core\MVC\Legacy\Templating\Twig\Template::getEnvironment
-     */
-    public function testGetEnvironment()
-    {
-        $this->assertSame( $this->twigEnv, $this->template->getEnvironment() );
-    }
-    /**
      * @covers \eZ\Publish\Core\MVC\Legacy\Templating\Twig\Template::getTemplateName
      */
     public function testGetName()

@@ -9,10 +9,11 @@
 
 namespace eZ\Publish\Core\MVC\Symfony\Templating\Twig\Extension;
 
-use Twig_Extension;
+use Twig\Extension\AbstractExtension as Twig_Extension;
 use eZ\Publish\Core\MVC\Symfony\Templating\GlobalHelper;
+use Twig\Extension\GlobalsInterface as Twig_Extension_GlobalsInterface;
 
-class CoreExtension extends Twig_Extension
+class CoreExtension extends Twig_Extension implements Twig_Extension_GlobalsInterface
 {
     /**
      * @var \eZ\Publish\Core\MVC\Symfony\Templating\GlobalHelper

@@ -10,8 +10,8 @@
 namespace eZ\Publish\Core\MVC\Symfony\Templating\Twig\Extension;
 
 use eZ\Publish\Core\MVC\Symfony\Routing\Generator\RouteReferenceGeneratorInterface;
-use Twig_Extension;
-use Twig_SimpleFunction;
+use Twig\Extension\AbstractExtension as Twig_Extension;
+use Twig\TwigFunction as Twig_SimpleFunction;
 
 class RoutingExtension extends Twig_Extension
 {

@@ -39,7 +39,8 @@
         "oneup/flysystem-bundle": "~0.4",
         "friendsofsymfony/http-cache-bundle": "~1.2",
         "symfony/expression-language": "~2.4",
-        "sensio/framework-extra-bundle": "~3.0"
+        "sensio/framework-extra-bundle": "~3.0",
+        "twig/twig": "^2.0"
     },
     "require-dev": {
         "sport1online/ezpublish-legacy": "@dev",

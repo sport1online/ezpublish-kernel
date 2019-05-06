@@ -29,11 +29,11 @@ use eZ\Publish\Core\MVC\ConfigResolverInterface;
 use eZ\Publish\SPI\Variation\VariationHandler;
 use eZ\Publish\API\Repository\Exceptions\InvalidVariationException;
 use Psr\Log\LoggerInterface;
-use Twig_Extension;
-use Twig_Environment;
-use Twig_SimpleFunction;
-use Twig_SimpleFilter;
-use Twig_Template;
+use Twig\Extension\AbstractExtension as Twig_Extension;
+use Twig\Environment as Twig_Environment;
+use Twig\TwigFunction as Twig_SimpleFunction;
+use Twig\TwigFilter as Twig_SimpleFilter;
+use Twig\Template as Twig_Template;
 use LogicException;
 
 /**

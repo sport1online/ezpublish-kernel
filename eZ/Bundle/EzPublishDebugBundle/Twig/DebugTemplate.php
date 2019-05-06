@@ -10,7 +10,7 @@
 namespace eZ\Bundle\EzPublishDebugBundle\Twig;
 
 use eZ\Bundle\EzPublishDebugBundle\Collector\TemplateDebugInfo;
-use Twig_Template;
+use Twig\Template as Twig_Template;
 
 /**
  * Meant to be used as a Twig base template class.

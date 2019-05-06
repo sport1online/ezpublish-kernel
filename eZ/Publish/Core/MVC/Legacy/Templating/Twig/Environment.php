@@ -9,8 +9,8 @@
 
 namespace eZ\Publish\Core\MVC\Legacy\Templating\Twig;
 
-use Twig_Environment;
-use Twig_Error_Loader;
+use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError as Twig_Error_Loader;
 use eZ\Publish\Core\MVC\Legacy\Templating\LegacyEngine;
 
 class Environment extends Twig_Environment

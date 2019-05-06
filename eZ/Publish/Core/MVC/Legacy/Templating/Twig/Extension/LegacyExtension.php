@@ -12,14 +12,15 @@ namespace eZ\Publish\Core\MVC\Legacy\Templating\Twig\Extension;
 use eZ\Publish\Core\MVC\Legacy\Templating\LegacyHelper;
 use eZ\Publish\Core\MVC\Legacy\Templating\Twig\TokenParser\LegacyIncludeParser;
 use eZ\Publish\Core\MVC\Legacy\Templating\LegacyEngine;
-use Twig_Extension;
-use Twig_SimpleFunction;
-use Twig_Environment;
+use Twig\Extension\AbstractExtension as Twig_Extension;
+use Twig\Extension\InitRuntimeInterface;
+use Twig\TwigFunction as Twig_SimpleFunction;
+use Twig\Environment as Twig_Environment;
 
 /**
  * Twig extension for eZ Publish legacy
  */
-class LegacyExtension extends Twig_Extension
+class LegacyExtension extends Twig_Extension implements InitRuntimeInterface
 {
     /**
      * @var \eZ\Publish\Core\MVC\Legacy\Templating\LegacyEngine
@@ -85,7 +86,7 @@ class LegacyExtension extends Twig_Extension
      */
     public function getName()
     {
-        return 'ezpublish.legacy';
+        return get_class($this);
     }
 
     /**

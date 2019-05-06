@@ -10,9 +10,9 @@
 namespace eZ\Publish\Core\MVC\Legacy\Templating\Twig\TokenParser;
 
 use eZ\Publish\Core\MVC\Legacy\Templating\Twig\Node\LegacyIncludeNode;
-use Twig_Token;
-use Twig_TokenParser;
-use Twig_Node_Expression_Array;
+use Twig\Token as Twig_Token;
+use Twig\TokenParser\AbstractTokenParser as Twig_TokenParser;
+use Twig\Node\Expression\ArrayExpression as Twig_Node_Expression_Array;
 
 /**
  * Parser for ez_legacy_include tag.
@@ -27,7 +27,7 @@ class LegacyIncludeParser extends Twig_TokenParser
      *
      * @param \Twig_Token $token A Twig_Token instance
      *
-     * @return \Twig_NodeInterface A Twig_NodeInterface instance
+     * @return \Twig\Node\Node A Twig_NodeInterface instance
      */
     public function parse( Twig_Token $token )
     {

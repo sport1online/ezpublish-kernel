@@ -10,8 +10,8 @@ namespace eZ\Publish\Core\MVC\Symfony\Templating\Twig\Extension;
 
 use Locale;
 use NumberFormatter;
-use Twig_Extension;
-use Twig_SimpleFilter;
+use Twig\Extension\AbstractExtension as Twig_Extension;
+use Twig\TwigFilter as Twig_SimpleFilter;
 use Symfony\Component\Translation\TranslatorInterface;
 use eZ\Publish\Core\MVC\ConfigResolverInterface;
 use eZ\Publish\Core\MVC\Symfony\Locale\LocaleConverterInterface;

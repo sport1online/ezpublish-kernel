@@ -9,9 +9,9 @@
 
 namespace eZ\Publish\Core\MVC\Legacy\Templating\Twig\Node;
 
-use Twig_Node;
-use Twig_Node_Expression;
-use Twig_Compiler;
+use Twig\Node\Node as Twig_Node;
+use Twig\Node\Expression\AbstractExpression as Twig_Node_Expression;
+use Twig\Compiler as Twig_Compiler;
 
 /**
  * Represents an ez_legacy_include node
@@ -22,7 +22,7 @@ class LegacyIncludeNode extends Twig_Node
 {
     public function __construct( Twig_Node_Expression $tplPath, Twig_Node_Expression $params, $lineno, $tag = null )
     {
-        return parent::__construct(
+        parent::__construct(
             array(
                 'tplPath' => $tplPath,
                 'params'  => $params
@@ -35,9 +35,11 @@ class LegacyIncludeNode extends Twig_Node
 
     public function compile( Twig_Compiler $compiler )
     {
+        $legacyExtensionClass = 'eZ\Publish\Core\MVC\Legacy\Templating\Twig\Extension\LegacyExtension';
+
         $compiler
             ->addDebugInfo( $this )
-            ->write( "echo \$this->env->getExtension( 'ezpublish.legacy' )->renderTemplate( " )
+            ->write("echo \$this->env->getExtension( '" . $legacyExtensionClass . "' )->renderTemplate( ")
             ->subcompile( $this->getNode( 'tplPath' ) )
             ->raw( ', ' )
             ->subcompile( $this->getNode( 'params' ) )
