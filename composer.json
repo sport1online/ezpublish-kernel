@@ -70,6 +70,6 @@
         "process-timeout": 3000
     },
     "extra": {
-        "ezpublish-legacy-dir": "vendor/ezsystems/ezpublish-legacy"
+        "ezpublish-legacy-dir": "vendor/sport1online/ezpublish-legacy"
     }
 }

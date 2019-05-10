@@ -29,7 +29,7 @@ return array(
     'legacy_dir' => (
         is_dir( './ezpublish_legacy' ) ?
             getcwd() . '/ezpublish_legacy' :
-            __DIR__ . '/vendor/ezsystems/ezpublish-legacy'
+            __DIR__ . '/vendor/sport1online/ezpublish-legacy'
     ),
     'imagemagick_convert_path' => '/usr/bin/convert'
 );
