@@ -31,6 +31,7 @@ use eZ\Publish\API\Repository\Exceptions\InvalidVariationException;
 use Psr\Log\LoggerInterface;
 use Twig\Extension\AbstractExtension as Twig_Extension;
 use Twig\Environment as Twig_Environment;
+use Twig\Extension\InitRuntimeInterface;
 use Twig\TwigFunction as Twig_SimpleFunction;
 use Twig\TwigFilter as Twig_SimpleFilter;
 use Twig\Template as Twig_Template;
@@ -40,7 +41,7 @@ use LogicException;
  * Twig content extension for eZ Publish specific usage.
  * Exposes helpers to play with public API objects.
  */
-class ContentExtension extends Twig_Extension
+class ContentExtension extends Twig_Extension implements InitRuntimeInterface
 {
     /**
      * Array of Twig template resources for ez_render_field
